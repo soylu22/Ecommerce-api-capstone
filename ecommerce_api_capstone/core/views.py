@@ -36,3 +36,19 @@ class LoginView(APIView):
         return Response(
             {"token": token.key}
         )
+    
+
+# Product list create view
+from rest_framework import generics
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from .models import Product
+from .serializers import ProductSerializer
+
+class ProductListCreateView(generics.ListCreateAPIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(owner = self.request.user)
