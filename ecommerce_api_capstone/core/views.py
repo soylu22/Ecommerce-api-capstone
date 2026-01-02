@@ -54,8 +54,12 @@ class ProductListCreateView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     filter_backends =[DjangoFilterBackend, SearchFilter, OrderingFilter]
-    search_fields = ["name"]
-    filterset_fields = ["category__name"]
+    search_fields = ['name', 'description']
+    filterset_fields = {
+        'category__name': ['exact'],
+        'price': ['gte', 'lte'],
+        'stock_quantity': ['gte', 'lte'],
+    }
     ordering_fields = ["price", "created_at"]
 
     def perform_create(self, serializer):
