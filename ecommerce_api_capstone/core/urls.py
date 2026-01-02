@@ -6,6 +6,11 @@ from .views import LoginView
 from .views import ProductListCreateView, ProductDetailView
 
 urlpatterns = [
+    path('', ProductListCreateView.as_view(), name='product-list-create'),
+    path('<int:pk>/', ProductDetailView.as_view(), name='product-detail'),
+]
+
+urlpatterns += [
     path('users/', UserListCreateView.as_view(), name='user-list-create'),
     path('login/', LoginView.as_view(), name='login'),
     path('products/', ProductListCreateView.as_view(), name= 'product-list-create'),

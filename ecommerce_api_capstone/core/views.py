@@ -5,6 +5,7 @@ from rest_framework import generics
 from django.contrib.auth.models import User
 from .serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated
+from .permissions import ProductPermissions
 
 class UserListCreateView(generics.ListCreateAPIView):
     queryset = User.objects.all()
@@ -43,13 +44,19 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from .models import OrderItem, Product
 from .serializers import ProductSerializer
-from .permissions import IsOwnerOrReadOnly
+from .permissions import ProductPermissions
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 
 class ProductListCreateView(generics.ListCreateAPIView):
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [ProductPermissions]
 
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
+    filter_backends =[DjangoFilterBackend, SearchFilter, OrderingFilter]
+    search_fields = ["name"]
+    filterset_fields = ["category__name"]
+    ordering_fields = ["price", "created_at"]
 
     def perform_create(self, serializer):
         serializer.save(owner = self.request.user)
@@ -59,23 +66,24 @@ class ProductListCreateView(generics.ListCreateAPIView):
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [ProductPermissions]
 
 
 # category viewa
 from rest_framework import generics, permissions
 from .models import Category
 from .serializers import CategorySerializer
+from .permissions import CategoryPermissions
 
 class CategoryListCreateView(generics.ListCreateAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly | permissions.IsAdminUser]
+    permission_classes = [CategoryPermissions]
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = [permissions.IsAdminUser]
+    permission_classes = [CategoryPermissions]
 
 # create and list orders
 from .models import Order, OrderItem, Product
@@ -91,6 +99,11 @@ class OrderListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
     
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return OrderSerializer
+        return OrderSerializer
+    
     def create(self, request, *args, **kwargs):
         items = request.data.get('items', [])
         if not items:
@@ -104,7 +117,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
         total_price = 0
 
         for item in items:
-            product = Product.objects.get(id=item["product"])
+            product = Product.objects.get(id=item["product"])  
             quantity = item["quantity"]
 
             OrderItem.objects.create(

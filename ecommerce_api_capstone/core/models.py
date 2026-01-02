@@ -12,16 +12,21 @@ class Product(models.Model):
         on_delete=models.CASCADE,
         related_name="products"
     )
-    category = models.ForeignKey('Category', on_delete=models.CASCADE, related_name="products", null=True, blank=True)
+    category = models.ForeignKey('Category', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    stock_quantity = models.PositiveIntegerField(default=0)
+    image_url = models.URLField(blank=True)
+
+    class Meta:
+        ordering = ['created_at']
 
     def __str__(self):
         return self.name
     
 # Category model
 class Category(models.Model):
-    name = models.CharField(max_length=50, unique=True)
-    description = models.TextField(blank=True, null=True)
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=False, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -68,4 +73,4 @@ class OrderItem(models.Model):
     )
 
     def __str__(self):
-        return f"{self.product} x {self.name}"
+        return f"{self.product.name} x {self.quantity}"
