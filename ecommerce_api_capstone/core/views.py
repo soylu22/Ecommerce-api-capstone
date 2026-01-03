@@ -121,7 +121,7 @@ class OrderListCreateView(generics.ListCreateAPIView):
         total_price = 0
 
         for item in items:
-            product = Product.objects.get(id=item["product"])  
+            product = Product.objects.get(id=item["product"])
             quantity = item["quantity"]
 
             OrderItem.objects.create(
